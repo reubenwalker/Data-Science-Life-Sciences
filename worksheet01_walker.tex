@@ -1,0 +1,340 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={worksheet01\_walker},
+  pdfauthor={Reuben Walker},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{worksheet01\_walker}
+\author{Reuben Walker}
+\date{15 April 2024}
+
+\begin{document}
+\maketitle
+
+\hypertarget{t-test}{%
+\subsection{t-test}\label{t-test}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Sample Vector}
+\NormalTok{num\_samples }\OtherTok{\textless{}{-}} \DecValTok{10}
+\CommentTok{\#Take a sample of random continues values between [{-}1,1] with .001 steps (number of steps 2000+1 for {-}1:1)}
+\NormalTok{cont\_distribution }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{2001}\NormalTok{), }\AttributeTok{size =}\NormalTok{ num\_samples)}
+
+\CommentTok{\#Take a sample of a student{-}t distribution with parameter nu = 1}
+\CommentTok{\#To do this, we use the rt function (pseudo{-}random numbers from t{-}distribution) with nu (degrees of freedom) = 1}
+\NormalTok{t\_distribution }\OtherTok{\textless{}{-}} \FunctionTok{rt}\NormalTok{(num\_samples, }\AttributeTok{df=}\DecValTok{1}\NormalTok{)}
+
+
+\CommentTok{\#Take a sample of random discrete values either {-}1 or 1, replace=TRUE so we can keep sampling}
+\NormalTok{disc\_distribution }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{size=}\NormalTok{num\_samples, }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\#Let\textquotesingle{}s just do it for n=5 and plot the histogram of the p values}
+\NormalTok{df }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{continuous=}\FunctionTok{double}\NormalTok{(),}
+                \AttributeTok{t=}\FunctionTok{double}\NormalTok{(),}
+                \AttributeTok{discrete=}\FunctionTok{double}\NormalTok{()}
+\NormalTok{                )}
+
+\ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10000}\NormalTok{) \{ }
+\NormalTok{  num\_samples }\OtherTok{=} \DecValTok{5}
+\NormalTok{  cont\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{2001}\NormalTok{), }\AttributeTok{size =}\NormalTok{ num\_samples)}
+\NormalTok{  cont\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{2001}\NormalTok{), }\AttributeTok{size =}\NormalTok{ num\_samples)}
+  \CommentTok{\#Pull the p{-}value from the t{-}test}
+\NormalTok{  p\_cont }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(cont\_distribution\_1, cont\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value}
+  
+\NormalTok{  t\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{rt}\NormalTok{(num\_samples, }\AttributeTok{df=}\DecValTok{1}\NormalTok{)}
+\NormalTok{  t\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{rt}\NormalTok{(num\_samples, }\AttributeTok{df=}\DecValTok{1}\NormalTok{)}
+\NormalTok{  p\_t }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(t\_distribution\_1, t\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value}
+
+\NormalTok{  disc\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{size=}\NormalTok{num\_samples, }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  disc\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{size=}\NormalTok{num\_samples, }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{)}
+  \CommentTok{\#The t.test returns an error when the two values are constant}
+  \CommentTok{\#This is because there is a variance term in the denominator}
+  \CommentTok{\#Check for null variance}
+\NormalTok{  null\_variance }\OtherTok{\textless{}{-}}\NormalTok{ ((}\FunctionTok{var}\NormalTok{(disc\_distribution\_1) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }\SpecialCharTok{\&}\NormalTok{ (}\FunctionTok{var}\NormalTok{(disc\_distribution\_2) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{))}
+\NormalTok{  p\_disc }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(null\_variance, }\ConstantTok{NaN}\NormalTok{, }\FunctionTok{t.test}\NormalTok{(disc\_distribution\_1, disc\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value)}
+  
+  \CommentTok{\#Append a row in the dataframe}
+\NormalTok{  df }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{continuous=}\NormalTok{p\_cont, }\AttributeTok{t=}\NormalTok{p\_t, }\AttributeTok{discrete=}\NormalTok{p\_disc))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{histograms-for-continuous-student-t-and-discrete-distributions}{%
+\subsection{Histograms for continuous, student-t, and discrete
+distributions}\label{histograms-for-continuous-student-t-and-discrete-distributions}}
+
+\#Bin width of 0.05, so the furthest left bar is p-value less than 0.05
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{continuous)}\CommentTok{\#, breaks = seq(from=0, to=1, by=0.05))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{worksheet01_walker_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{t)}\CommentTok{\#, breaks = seq(from=0, to=1, by=0.05))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{worksheet01_walker_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{discrete)}\CommentTok{\#, breaks = seq(from=0, to=1, by=0.05))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{worksheet01_walker_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#How many is that for each?}
+\NormalTok{cont\_result\_0 }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{continuous }\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{continuous)}
+\NormalTok{cont\_result\_0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.0474
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#0.04}
+
+\NormalTok{t\_result\_0 }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{t }\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{t)}
+\NormalTok{t\_result\_0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.0134
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#0.01}
+
+\CommentTok{\#Non{-}NaN subset}
+\NormalTok{disc\_result\_0 }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{na.omit}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{discrete) }\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(}\FunctionTok{na.omit}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{discrete))}
+\NormalTok{disc\_result\_0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.01846648
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#0.02}
+
+\CommentTok{\#Now let\textquotesingle{}s repeat is for all sample sizes}
+\NormalTok{sampleNumbers }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{5}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{20}\NormalTok{,}\DecValTok{50}\NormalTok{,}\DecValTok{100}\NormalTok{)}
+\NormalTok{cont\_result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
+\NormalTok{t\_result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
+\NormalTok{disc\_result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{ (x }\ControlFlowTok{in}\NormalTok{ sampleNumbers) \{}
+\NormalTok{  df }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{continuous=}\FunctionTok{double}\NormalTok{(),}
+                \AttributeTok{t=}\FunctionTok{double}\NormalTok{(),}
+                \AttributeTok{discrete=}\FunctionTok{double}\NormalTok{()}
+\NormalTok{                )}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10000}\NormalTok{) \{ }
+\NormalTok{    num\_samples }\OtherTok{=}\NormalTok{ x}
+\NormalTok{    cont\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{20001}\NormalTok{), }\AttributeTok{size =}\NormalTok{ num\_samples)}
+\NormalTok{    cont\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{20001}\NormalTok{), }\AttributeTok{size =}\NormalTok{ num\_samples)}
+    \CommentTok{\#Pull the p{-}value from the t{-}test}
+\NormalTok{    p\_cont }\OtherTok{=} \FunctionTok{t.test}\NormalTok{(cont\_distribution\_1, cont\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value}
+    
+\NormalTok{    t\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{rt}\NormalTok{(num\_samples, }\AttributeTok{df=}\DecValTok{1}\NormalTok{)}
+\NormalTok{    t\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{rt}\NormalTok{(num\_samples, }\AttributeTok{df=}\DecValTok{1}\NormalTok{)}
+\NormalTok{    p\_t }\OtherTok{=} \FunctionTok{t.test}\NormalTok{(t\_distribution\_1, t\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value}
+  
+\NormalTok{    disc\_distribution\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{size=}\NormalTok{num\_samples, }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{    disc\_distribution\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{size=}\NormalTok{num\_samples, }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{)}
+    \CommentTok{\#The lack of variation is much less likely with increasing sample size}
+\NormalTok{    null\_variance }\OtherTok{\textless{}{-}}\NormalTok{ ((}\FunctionTok{var}\NormalTok{(disc\_distribution\_1) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }\SpecialCharTok{\&}\NormalTok{ (}\FunctionTok{var}\NormalTok{(disc\_distribution\_2) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{))}
+\NormalTok{    p\_disc }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(null\_variance, }\ConstantTok{NaN}\NormalTok{, }\FunctionTok{t.test}\NormalTok{(disc\_distribution\_1, disc\_distribution\_2)}\SpecialCharTok{$}\NormalTok{p.value)}
+  
+    
+    \CommentTok{\#Append a row in the dataframe}
+\NormalTok{    df }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{continuous=}\NormalTok{p\_cont, }\AttributeTok{t=}\NormalTok{p\_t, }\AttributeTok{discrete=}\NormalTok{p\_disc))}
+\NormalTok{  \}}
+\NormalTok{  cont\_perc }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{continuous }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{continuous)}
+\NormalTok{  cont\_result }\OtherTok{\textless{}{-}} \FunctionTok{append}\NormalTok{(cont\_result, cont\_perc)}
+  
+\NormalTok{  t\_perc }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{t }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{t)}
+\NormalTok{  t\_result }\OtherTok{\textless{}{-}} \FunctionTok{append}\NormalTok{(t\_result, t\_perc)}
+  
+\NormalTok{  disc\_perc }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{na.omit}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{discrete) }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(}\FunctionTok{na.omit}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{discrete))}
+\NormalTok{  disc\_result }\OtherTok{\textless{}{-}} \FunctionTok{append}\NormalTok{(disc\_result, disc\_perc)}
+\NormalTok{\}}
+
+\CommentTok{\#So more or less regardless of sample size, they\textquotesingle{}re staying the same?}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+## v dplyr     1.1.4     v readr     2.1.5
+## v forcats   1.0.0     v stringr   1.5.1
+## v lubridate 1.9.3     v tibble    3.2.1
+## v purrr     1.0.2     v tidyr     1.3.1
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#plot(sampleNumbers, cont\_result, col=\textquotesingle{}green\textquotesingle{}, ylim=c(0,0.1), main=\textquotesingle{}Probability of p\textless{}0.05 (continuous)\textquotesingle{})\#, type=\textquotesingle{}l\textquotesingle{}}
+\CommentTok{\#plot(sampleNumbers, t\_result, type=\textquotesingle{}l\textquotesingle{}, col=\textquotesingle{}blue\textquotesingle{}, ylim=c(0,0.1))}
+\CommentTok{\#plot(sampleNumbers, disc\_result, type=\textquotesingle{}l\textquotesingle{}, col=\textquotesingle{}red\textquotesingle{}, ylim=c(0,1))}
+
+\CommentTok{\#And all together?}
+\NormalTok{plot\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{samplesize=}\NormalTok{sampleNumbers, }
+                      \AttributeTok{continuous=}\NormalTok{cont\_result,}
+                      \AttributeTok{t=}\NormalTok{t\_result,}
+                      \AttributeTok{discrete=}\NormalTok{disc\_result)}
+                      
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\NormalTok{plot\_df2 }\OtherTok{\textless{}{-}}\NormalTok{ plot\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(samplesize, continuous, t, discrete) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{gather}\NormalTok{(}\AttributeTok{key =} \StringTok{"variable"}\NormalTok{, }\AttributeTok{value =} \StringTok{"value"}\NormalTok{, }\SpecialCharTok{{-}}\NormalTok{samplesize)}
+\FunctionTok{head}\NormalTok{(plot\_df2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   samplesize   variable  value
+## 1          5 continuous 0.0500
+## 2         10 continuous 0.0493
+## 3         20 continuous 0.0484
+## 4         50 continuous 0.0529
+## 5        100 continuous 0.0520
+## 6          5          t 0.0156
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot\_f }\OtherTok{\textless{}{-}}\FunctionTok{ggplot}\NormalTok{(plot\_df2, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ samplesize, }\AttributeTok{y =}\NormalTok{ value)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{color =}\NormalTok{ variable, }\AttributeTok{linetype =}\NormalTok{ variable)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_point}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{color =}\NormalTok{ variable)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"darkred"}\NormalTok{, }\StringTok{"steelblue"}\NormalTok{, }\StringTok{"purple"}\NormalTok{))}
+\NormalTok{plot\_f }\SpecialCharTok{+} \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Percentage of (p\textless{}0.05) Over Increasing Sample Sizes for Differing Distributions"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{xlab}\NormalTok{(}\StringTok{"Sample Size"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Percentage p values \textless{} 0.05"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{worksheet01_walker_files/figure-latex/unnamed-chunk-6-1.pdf}
+Conclusion: We choose p values less than 0.05 because in a uniform
+continuous distribution we would expect to see ``significant'' results
+5\% of the time. We would choose p values less than 0.05 if we suspected
+our distribution to be a t-distribution of some sort.
+
+\end{document}
