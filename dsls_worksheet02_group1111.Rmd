@@ -1,5 +1,5 @@
 ---
-title: "Data Science in Life Science - Worksheet 01 Group 1111"
+title: "Data Science in Life Science - Worksheet 02 Group 1111"
 output:
   html_document:
     df_print: paged
@@ -14,78 +14,15 @@ knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
 
 # Question 1
 
-#### Load library and constant parameters
+#### Load libraries 
 ```{r}
 library(ggplot2)
-library(tidyverse)
-library(stats)
-library(extraDistr)
-library(MASS) 
-library(reshape2) 
-library(reshape)
-
-# create a vector to hold the list of sample sizes
-sample_sizes <- c(5, 10, 20, 50, 100)
-
-# number of times to repeat sample
-n_rounds <- 10000
-
-# set alpha level for two-tailed (0.05 / 2)
-sig_level <- 0.025
-```
-
-#### Read the data
-```{r}
-lung_data <- read.csv("./lung_data.csv")
-```
-
-#### View the first few rows of the data
-```{r}
-head(lung_data)
-```
-
-#### Summary statistics
-```{r}
-summary(lung_data)
-
-lung_control <- subset(lung_data, Trial.arm=="Control")
-hist(lung_control$Lung.function)
-lung_treatment <- subset(lung_data, Trial.arm=="Treatment")
-hist(lung_treatment$Lung.function)
-#These look close to normal.
-
-shapiro.test(lung_control$Lung.function)
-shapiro.test(lung_treatment$Lung.function)
-
-library(ggpubr)
-ggdensity(lung_control$Lung.function, 
-          main = "Density plot of lung function (control)",
-          xlab = "Lung function")
-ggdensity(lung_treatment$Lung.function, 
-          main = "Density plot of lung function (treatment)",
-          xlab = "Lung function")
-ggqqplot(lung_control$Lung.function,
-         main = "Q-Q Plot Control")
-ggqqplot(lung_treatment$Lung.function,
-         main = "Q-Q Plot Treatment")
-
-#Though shapiro tests for these small samples are unlikely to be problematic, the histograms and q-q plots look ok.
-```
-
-#### Visualize the data for each group
-```{r}
-
-boxplot(Lung.function ~ Trial.arm, data = lung_data,
-main="Comparison of Lung Function Between Control and Treatment Groups",
-xlab="Group",
-ylab="Lung Function",
-col="cyan",
-border="black"
-)
-
-# Test for difference in lung function between the two groups
-t_test_result <- t.test(Lung.function ~ Trial.arm, data = lung_data)
-t_test_result
+#library(tidyverse)
+#library(stats)
+#library(extraDistr)
+#library(MASS) 
+#library(reshape2) 
+#library(reshape)
 ```
 ### Post-hoc power analysis
 ```{r post-hoc power}
@@ -98,7 +35,7 @@ power.t.test(n=n_, delta=delta_, sd=sd_, sig.level=alpha_, power=NULL, type=type
 ```
 ### single power test for control/treatment
 ```{r single power test for control/treatment}
-seed(123)
+set.seed(123)
 control <- rnorm(n=20, mean=0, sd=1)
 treatment <- rnorm(n=20, mean=0.5, sd=1)
 
@@ -112,7 +49,7 @@ alpha_ <- 0.05
 type_ <- "two.sample"
 power.t.test(n=20, delta=delta_, sd=sd_, sig.level=alpha_, power=NULL, type=type_)
 ```
-### sample from continuous uniform distribution
+### Repeat power test 10,000 times
 ```{r}
 #Silly loop formulation
 df = data.frame(p_value=double(),
@@ -126,7 +63,8 @@ for (j in 1:10000) {
   p_value_ <- t.test(treatment, control, type = "two.sided", paired = FALSE, conf.level = 0.95)$p.value
   estimate <- t.test(treatment, control, type = "two.sided", paired = FALSE, conf.level = 0.95)$estimate
   delta_ = unname(estimate[1] - estimate[2])
-  sd_ = sd(control)
+  #sd_ = sd(control)
+  sd_ = sqrt(var(control)+var(treatment))
   alpha_ = 0.05
   type_ = "two.sample"
   power_ <- power.t.test(n=20, delta=delta_, sd=sd_, sig.level=0.05, power=NULL, type="two.sample")$power
@@ -140,161 +78,8 @@ ggplot(df, aes(x=p_value, y=power)) +
   geom_point() + 
   #plot theoretical statistical power
   geom_hline(aes(yintercept=power_true), color='red') + 
-  annotate("text", x=0.75, y=0.36, label= "delta=0.5,sd=1", color='red') 
+  annotate("text", x=0.75, y=0.36, label= "delta=0.5,sd=1", color='red') +
+  labs(title='Ad-hoc power for 10,000 t-tests Control vs Treatment')
 ```
-So does it make sense to do a post-hoc power analysis?
-
-```{r}  
-power_true <- power.t.test(n=20, delta=0.5, sd=1, sig.level=0.05, power=NULL, type="two.sample")$power
-```
-So 
-```{r}  
-power_simulation <- function(i){ # where i = # samples drawn
-  control <- rnorm(n=20, mean=0, sd=1)
-  treatment <- rnorm(n=20, mean=0.5, sd=1)
-
-  p_value <- t.test(treatment, control, type = "two.sided", paired = FALSE, conf.level = 0.95)$p.value
-  estimate <- t.test(treatment, control, type = "two.sided", paired = FALSE, conf.level = 0.95)$estimate
-  delta_ = unname(estimate[1] - estimate[2])
-  sd_ = sd(control)
-  alpha_ = 0.05
-  type_ = "two.sample"
-  power <- power.t.test(n=i, delta=delta_, sd=sd_, sig.level=0.05, power=NULL, type="two.sample")$power
-
-}
-
-
-# function for sampling from continuous uniform distribution [-1,1]
-continuous_uniform_dist <- function(i){ # where i = # samples drawn
-  t.test(x = runif(i, min = -1, max = 1), mu = 0, alternative = "two.sided", paired = FALSE, conf.level = 0.95)$p.value
-}
-
-set.seed(123) # seed for random sampling
-cont_unif_dist_pval <- replicate(n = n_rounds, expr = {lapply(sample_sizes, continuous_uniform_dist)}, simplify = TRUE) # repeat sampling n_rounds times
-
-# plot p-value distribution for smallest sample size 5
-cont_unif_dist_pval_sample_size_five <- as.vector(cont_unif_dist_pval[1,], mode = "numeric") # extract from df p value generated from 10000 x sample_size = 5 and convert to numeric vector
-
-hist(x = cont_unif_dist_pval_sample_size_five,
-     main = paste("Continuous Uniform Distribution P Value of Sample Size 5"),
-     xlab = paste("P values"))
-
-print(paste("The number of instances drawn from continuous uniform distribution with below nominal significance level is", sum(cont_unif_dist_pval_sample_size_five < sig_level), "out of 10000."))
-```
-
-#### sampling from student t distribution with parameter v=1
-```{r}
-
-v <- 1 # parameter for degrees of freedom
-
-student_t_dist <- function(i){
-  t.test(x = rt(n = i, df = i - v ), mu = 0, alternative = "two.sided", paired = FALSE, conf.level = 0.95)$p.value
-}
-
-# sample 10000 rounds for each sample size
-set.seed(123) # seed for random sampling
-student_t_dist_pval <- replicate(n = n_rounds, expr = {lapply(sample_sizes, student_t_dist)}, simplify = TRUE) # repeat sample generate n times
-
-# plot p-value distribution for smallest sample size
-student_t_dist_pval_sample_size_five <- as.vector(student_t_dist_pval[1,], mode = "numeric") # extract from df p value generated from 10000 x sample_size = 5 and convert to numeric vector
-
-hist(x = student_t_dist_pval_sample_size_five,
-     main = paste("Student T Distribution P Value of Sample Size 5"),
-     xlab = paste("P values"))
-
-print(paste("The number of instances drawn from student t distribution with below nominal significance level is", sum(student_t_dist_pval_sample_size_five < sig_level), "out of 10000"))
-
-```
-
-#### sampling from discrete uniform distribution
-```{r}
-
-discrete_uniform_dist <- function(i){
-  obj <- try((t.test(x = round(runif(i, min = -1, max = 1),0), alternative = "two.sided", paired = FALSE, conf.level = 0.95)), silent=TRUE)
-  ifelse (is(obj,"try-error"), NaN, obj$p.value)
-}
-
-set.seed(123) # seed for random sampling
-discrete_unif_dist_pval <- replicate(n = n_rounds, expr = {lapply(sample_sizes, discrete_uniform_dist)}, simplify = TRUE) # repeat sample generate n times
-
-# plot p-value distribution for smallest sample size
-discrete_unif_dist_pval_sample_size_five <- as.vector(discrete_unif_dist_pval[1,], mode = "numeric") # extract from df p value generated from 10000 x sample_size = 5 and convert to numeric vector
-
-hist(x = discrete_unif_dist_pval_sample_size_five,
-     main = paste("Discrete Uniform Distribution P Value of Sample Size 5"),
-     xlab = paste("P values"))    # plot hist generated p value for distribution of smallest sample size
-
-print(paste("The number of instances drawn from a discrete distribution with below nominal significance level is", sum(na.omit(discrete_unif_dist_pval_sample_size_five) < sig_level), "out of ",length(na.omit(discrete_unif_dist_pval_sample_size_five))))#10000"))
-
-```
-
-#### plot fraction of significant results for all distribution results as sample size increases
-```{r}
-# count by row with significant results
-
-student_t_frac <- as.data.frame(student_t_dist_pval)
-student_t_frac <- (rowSums(student_t_frac < sig_level) / n_rounds)
-
-cont_unif_frac <- as.data.frame(cont_unif_dist_pval)
-cont_unif_frac <- (rowSums(cont_unif_frac < sig_level) / n_rounds)
-
-disc_unif_frac_0 <- as.data.frame(discrete_unif_dist_pval)
-disc_unif_notna_count <- rowSums(!is.na(disc_unif_frac_0))
-
-# notna percentage
-notna_percentage = function(row){
-  rowsum <- sum(row[!is.na(row)] < sig_level)   # calculate number of elements lower than 0.025
-  elementNumber <- length(!is.na(row))   # calculate number of total non-na elements
-  return (rowsum / elementNumber)
-}
-
-disc_unif_frac <- apply(disc_unif_frac_0, 1 ,notna_percentage)
-
-frac <- data.frame(cont_unif = c(cont_unif_frac), student_t = c(student_t_frac), disc_unif = c(disc_unif_frac))
-frac$sample_size <- sample_sizes
-frac <- frac %>% melt(id = c("sample_size"))
-
-plot_f <- ggplot(frac, aes(x = sample_size, y = value)) + 
-  geom_line(aes(color = variable, linetype = variable)) + 
-  geom_point(aes(color = variable)) +
-  scale_color_manual(values = c("darkred", "steelblue", "purple"))
-plot_f + ggtitle("p Values Over Increasing Sample Sizes for Differing Distributions") + xlab("Sample Size") + ylab("Percentage p values < 0.05")
-
-```
-#### Comments
-Based observations from the above chart, it did not exhibit the expected inverse relationship between sample size and significant results (as sample increases, % significant results decreases (or at least stabilises)). Part of the variability could be explained by randomness.  
-
-
-
-# Question 2
-
-
-### Statistical analysis
-
-The t-test yielded a p-value of 0.0374, which is below the standard significance level of 0.05. As there is a statistically significant difference in mean lung function between the control and treatment groups,we reject the null hypothesis.
-To conclude, Based on the results of the Welch Two Sample t-test, there is sufficient evidence to suggest that the observed mean difference in lung function (of 0.325) is not due to random variation (The new drug has an effect on lung function compared to the placebo).
-
-
-# Question 3
-
-#3
-
-FALSE: p-values are used to calculate the probability of the null hypothesis given the data.
-Why: p-values are a measure of surprise and calculated under the assumption that the null hypothesis is true.
-
-TRUE: The significance level alpha is the probability of rejecting the null hypothesis when it is true.
-
-FALSE: The Central Limit Theorem only holds if the population from which we are sampling is normally distributed.
-Why: The Central Limit Theorem states that for large sample sizes, the sample mean is approximately normally distributed, regardless of the distribution.
-
-FALSE: As the sample size gets larger, the standard error of the sampling distribution of the sample mean gets larger as well.
-Why: The calculation of the standard error includes the root of sample size in the denominator and should decrease with increased sample size.
-
-FALSE: The statistical power of a hypothesis test it the probability of not rejecting the null when H1 is true.
-Why: Statistical power is the probability that "one will correctly reject the null hypothesis" if the alternative hypothesis is true. (The alternative hypothesis being that the null hypothesis is false). 
-
-FALSE: The statistical power of a hypothesis test is the probability of rejecting H1 when H1 is true.
-Why: Statistical power is the probability that "one will correctly reject the null hypothesis" if the alternative hypothesis is true. (The alternative hypothesis being that the null hypothesis is false). 
-
-```
+It doesn't make sense to do a post-hoc power analysis because it will be entirely dependent on your p-value.
 
