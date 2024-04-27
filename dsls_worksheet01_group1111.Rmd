@@ -34,6 +34,69 @@ n_rounds <- 10000
 sig_level <- 0.025
 ```
 
+#### Read the data
+```{r}
+lung_data <- read.csv("./lung_data.csv")
+```
+
+#### View the first few rows of the data
+```{r}
+head(lung_data)
+```
+
+#### Summary statistics
+```{r}
+summary(lung_data)
+
+lung_control <- subset(lung_data, Trial.arm=="Control")
+hist(lung_control$Lung.function)
+lung_treatment <- subset(lung_data, Trial.arm=="Treatment")
+hist(lung_treatment$Lung.function)
+#These look close to normal.
+
+shapiro.test(lung_control$Lung.function)
+shapiro.test(lung_treatment$Lung.function)
+
+library(ggpubr)
+ggdensity(lung_control$Lung.function, 
+          main = "Density plot of lung function (control)",
+          xlab = "Lung function")
+ggdensity(lung_treatment$Lung.function, 
+          main = "Density plot of lung function (treatment)",
+          xlab = "Lung function")
+ggqqplot(lung_control$Lung.function,
+         main = "Q-Q Plot Control")
+ggqqplot(lung_treatment$Lung.function,
+         main = "Q-Q Plot Treatment")
+
+#Though shapiro tests for these small samples are unlikely to be problematic, the histograms and q-q plots look ok.
+```
+
+#### Visualize the data for each group
+```{r}
+
+boxplot(Lung.function ~ Trial.arm, data = lung_data,
+main="Comparison of Lung Function Between Control and Treatment Groups",
+xlab="Group",
+ylab="Lung Function",
+col="cyan",
+border="black"
+)
+
+# Test for difference in lung function between the two groups
+t_test_result <- t.test(Lung.function ~ Trial.arm, data = lung_data)
+t_test_result
+```
+### Post-hoc power analysis
+```{r post-hoc power}
+n_ = 20 # Number of subjects in EACH group
+delta_ = 0.325 #Mean difference from T-test
+sd_ = sd(subset(lung_data$Lung.function, lung_data$Trial.arm == "Control")) #SD from control group
+alpha_ = 0.05 #significance level
+type_ = "two.sample" #Since we're comparing two groups to one another, 
+power.t.test(n=n_, delta=delta_, sd=sd_, sig.level=alpha_, power=NULL, type=type_)
+```
+
 ### sample from continuous uniform distribution
 ```{r}
 
@@ -141,59 +204,7 @@ Based observations from the above chart, it did not exhibit the expected inverse
 
 # Question 2
 
-#### Read the data
-```{r}
-lung_data <- read.csv("./lung_data.csv")
-```
 
-#### View the first few rows of the data
-```{r}
-head(lung_data)
-```
-
-#### Summary statistics
-```{r}
-summary(lung_data)
-
-lung_control <- subset(lung_data, Trial.arm=="Control")
-hist(lung_control$Lung.function)
-lung_treatment <- subset(lung_data, Trial.arm=="Treatment")
-hist(lung_treatment$Lung.function)
-#These look close to normal.
-
-shapiro.test(lung_control$Lung.function)
-shapiro.test(lung_treatment$Lung.function)
-
-library(ggpubr)
-ggdensity(lung_control$Lung.function, 
-          main = "Density plot of lung function (control)",
-          xlab = "Lung function")
-ggdensity(lung_treatment$Lung.function, 
-          main = "Density plot of lung function (treatment)",
-          xlab = "Lung function")
-ggqqplot(lung_control$Lung.function,
-         main = "Q-Q Plot Control")
-ggqqplot(lung_treatment$Lung.function,
-         main = "Q-Q Plot Treatment")
-
-#Though shapiro tests for these small samples are unlikely to be problematic, the histograms and q-q plots look ok.
-```
-
-#### Visualize the data for each group
-```{r}
-
-boxplot(Lung.function ~ Trial.arm, data = lung_data,
-main="Comparison of Lung Function Between Control and Treatment Groups",
-xlab="Group",
-ylab="Lung Function",
-col="cyan",
-border="black"
-)
-
-# Test for difference in lung function between the two groups
-t_test_result <- t.test(Lung.function ~ Trial.arm, data = lung_data)
-t_test_result
-```
 ### Statistical analysis
 
 The t-test yielded a p-value of 0.0374, which is below the standard significance level of 0.05. As there is a statistically significant difference in mean lung function between the control and treatment groups,we reject the null hypothesis.
