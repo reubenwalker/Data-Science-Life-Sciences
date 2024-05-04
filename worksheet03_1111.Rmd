@@ -1,0 +1,188 @@
+---
+title: "worksheet03_walker"
+author: "Reuben Walker"
+date: "30 April 2024"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Clustering
+#Load microarray data
+```{r load data and libraries}
+library(tidyverse)
+library(ISLR2)
+library(cluster)
+library(clValid)
+nci.labs <- NCI60$labs
+nci.data <- NCI60$data
+#Check size of array
+dim(nci.data)
+#Gene expression as double
+#nci.data[,1]
+```
+#So as stated in the assignment, we have 6,830 gene expression measurements on 64 cancer cell lines.
+```{r scale data}
+#Let's transpose the data so the gene expressions are the rows
+#nci.data.t <- t(nci.data)
+#nci.labs.t <- t(nci.labs)
+#Remove NAs and scale
+nci.data.cleaned <- na.omit(nci.data)#.t)
+nci.data.scaled <- scale(nci.data.cleaned)
+
+#Calculate distance matrix
+dist.matrix <- dist(nci.data.scaled, method="euclidean")
+str(dist.matrix)
+```
+
+#Hierarchical Clustering
+#Complete
+```{r clustering}
+clustersCom <- hclust(dist.matrix,method = "complete")
+plot(clustersCom)
+```
+#Single
+```{r clustering}
+clustersS <- hclust(dist.matrix,method = "single")
+plot(clustersS)
+```
+#Average
+```{r clustering}
+clustersA <- hclust(dist.matrix,method = "average")
+plot(clustersA)
+```
+#Centroid
+```{r clustering}
+clustersCen <- hclust(dist.matrix,method = "centroid")
+plot(clustersCen)
+```
+The form of each dendrogram reflects the method used for clustering. Single linkage begins with the most similar points (minimum distance) between clusters, which seems to reduce dimensions in a way that there are still a lot of similar groups as we approach the top of the dendrogram. Centroid linkage compares the centroid difference between clusters and reveals more clustering structure higher up the dendrogram than single linkage, but is still difficult to decipher where one could make cuts. Complete linkage uses the maximal dissimilarity between objects in a cluster and as a result, seems to visually do a good job of gathering the branches into identifiable groupings while average linkage computes the average pairwise dissimilarity between all objects in clusters. As complete linkage seems to have the clearest differentiation near the top of the dendrogram, we'll use it for our cut to analyze the groupings. 
+#Cutting the dendrogram
+```{r pruning}
+cut <- cutree(clustersCom, k = 4)#c(4,6))
+plot(clustersCom) + abline(h=139.5, col='red')
+```
+
+#Compare results
+```{r comp}
+df <- data.frame(nci.labs, cut)
+df %>% count(nci.labs, cut)
+```
+So it looks like we have some misclassified labels, where breast cancer is spread across 3 groups, for example. That brings us back to the question what a "reasonable" number of groupings would be, for which I'd need more expertise. How many different labels do we have? 
+```{r groups2}
+length(unique(nci.labs))
+#So let's try 14 groups
+cut14 <- cutree(clustersCom, k = 14)#c(4,6))
+
+df14 <- data.frame(nci.labs, cut14)
+df14 %>% count(nci.labs, cut14)
+```
+#Still not completely impressed. Let's try somewhere in between 4 and 14: 10?
+```{r groups3}
+length(unique(nci.labs))
+#So let's try 14 groups
+cut10 <- cutree(clustersCom, k = 10)#c(4,6))
+
+df10 <- data.frame(nci.labs, cut10)
+df10 %>% count(nci.labs, cut10)
+```
+What if we try it with another algorithm?
+```{r groups centroid}
+length(unique(nci.labs))
+#So let's try 14 groups
+cut4c <- cutree(clustersCom, k = 4)#c(4,6))
+
+df4c <- data.frame(nci.labs, cut4c)
+df4c %>% count(nci.labs, cut4c)
+```
+This seems a little better using the centroid linkage. Breast cancer appears in 1,2, and 4, but colon cancer, melanoma, leukemia, ovarian, prostate, and the repro types are all isolated in their own groups even with k=4. Now let's take a look at k means
+```{r k means}
+set.seed(123)
+cl <- kmeans(nci.data.scaled, 4)
+str(cl)
+df_k <- data.frame(nci.labs,cl$cluster)
+df_k %>% count(nci.labs, cl$cluster)
+```
+The clustering seems to have done similarly, with breast cancer (4), CNS (2), melanoma(2), and renal (2)  appearing across multiple groupings.
+```{r kmeans best fit}
+lengthTest <- 64
+meansList <- list()
+for (t in 1:5) {
+  (cl <- kmeans(nci.data.scaled, 4))
+  plot(nci.data.scaled, col = cl$cluster)
+  points(cl$centers, col = 1:2, pch = 8, cex = 2)
+  df_i <- data.frame(nci.labs,cl$cluster)
+  resultDF <- df_i %>% count(nci.labs, cl$cluster)
+  lengthTest_i <-length(resultDF$n)
+  meansList <- c(meansList, cl)
+  if (lengthTest_i < lengthTest) {
+    print(lengthTest_i)
+    lengthTest <- lengthTest_i
+    t_f <- t
+    cl_f <- cl
+    resultDF_f <- resultDF
+  }
+  
+}
+resultDF_f
+
+```
+Obviously, 64 dimensional data is difficult to visualize in 2d, so I'll print the best fit based on the labels. One of the K means split all values into their own groups outside of breast cancer (2) and NSCLC (2). This isn't necessarily a "good" clustering result though, as this is information that we shouldn't have. Let's use a validation package to check what we "should" do.
+```{r validate}
+intern <- clValid(nci.data.scaled, 2:14, clMethods=c("hierarchical","kmeans"),
+                  validation="internal")
+#metric = "euclidean" and method = "average" are default
+summary(intern)
+optimalScores(intern)
+plot(intern)
+
+```
+So it seems like the optimal k for kMeans would be seven groups as the silhouette score has a local maximum(?). Let's take a look:
+```{r kMeans 7}
+lengthTest <- 64
+meansList <- list()
+for (t in 1:5) {
+  (cl <- kmeans(nci.data.scaled, 7))
+  df_i <- data.frame(nci.labs,cl$cluster)
+  resultDF <- df_i %>% count(nci.labs, cl$cluster)
+  lengthTest_i <-length(resultDF$n)
+  meansList <- c(meansList, cl)
+  if (lengthTest_i < lengthTest) {
+    print(lengthTest_i)
+    lengthTest <- lengthTest_i
+    t_f <- t
+    cl_f <- cl
+    resultDF_f <- resultDF
+  }
+  
+}
+resultDF_f
+```
+So even with the optimized k for the kMeans method, we end up with some cancer types split across the groupings. The repro variants are all isolated, as well as leukemia and colon cancer, which is uniquely grouped with a single instance of NSCLC. 
+
+However, the highest score seems to be just two groups for average linkage hierarchical clustering:
+```{r hierarchy 2 branches}
+cutA <- cutree(clustersA, k=2)
+df <- data.frame(nci.labs, cutA)
+df %>% count(nci.labs, cutA)
+```
+Not a single cancer type appears across both groupings. Leukemia, K562A-repro, and K562B-repro appear in their own group and all other cancer types are grouped together.
+
+###Exercise 4
+a) As we are comparing a continuous variable in blood pressure, a chi square test would only be appropriate if we converted that continuous variable into groupings (high/low, for example). A more appropriate test would be an analysis of variance (ANOVA).
+b) In order to do a power analysis, we need to know the variance (standard deviation) of the data as well as the hypothesized mean difference between groups. The other quantities in this case are known (significance level 0.05, group size 20, number of groups 2).
+c) The easiest factor to change to increase the power would be the sample size of the study.
+d) TRUE Putting an equal amount of male and female participants in the high and low blood alcohol groups is an example of stratified sampling where we identify a potential confounding factor and make our groups as similar as we can, a process known as blocking.
+e) FALSE The number of subjects in a study is not related to multiple testing corrections, however, a correction may be necessary as we are running multiple tests on the same research question.
+f) FALSE, we should ALSO randomly select from subgroups we have identified as potentially confounding factors in the data. 
+g) For a study of the effects of alcohol on blood pressure, a smoking habit would be an example of a counfounder or confounding factor.
+h) The second study showed that both obese and non-obese people showed lower blood pressure in a control group than in a high-alcohol group. However, when the entire population was observed, the high-alcohol group had lower blood pressure. This suggests that the mean difference in blood pressure between men and women is driving the observed mean differences in the total population, likely through differing distribution and the control and treatment groups. In order to estimate if the effect is present in the total population, one could adjust for these baseline differences by mean shifting blood pressure for the obese population with the difference from the non-obese population and running the comparison. 
+i) FALSE, the second test has mostly confirmed two confounding factors that we likely should have blocked in the first study.
+j) FALSE, this ad-hoc comparison shows that mean blood pressure in a control group is lower than in a high alcohol group in both obese and non-obese groups than would be expected due to random variation. Mostly, the second study shows that there are complex relationships between multiple counfounding factors and that a future experimental design should take those into account.
+```{r Review}
+
+```
