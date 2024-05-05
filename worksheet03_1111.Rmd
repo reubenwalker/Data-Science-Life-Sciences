@@ -1,7 +1,7 @@
 ---
-title: "worksheet03_walker"
-author: "Reuben Walker"
-date: "30 April 2024"
+title: "Worksheet 3 Group 1111"
+author: "Ammara Akhtar, Afia Ibnath, and Reuben Walker"
+date: "5 May 2024"
 output:
   pdf_document: default
   html_document: default
@@ -10,47 +10,153 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+###Exercise 1 Stratification
+
+#### Load libraries 
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+### Data summary
+```{r}
+lung_data <- read.csv("C:/Users/Reuben/Documents/Code/DSLS/lung_data_all.csv")
+head(lung_data)
+
+# Summary statistics
+summary(lung_data)
+```
+### Test whether the treatment shows any effect overall
+
+```{r}
+t.test(filter (lung_data, Trial.arm == "Treatment") $Lung.function,
+filter (lung_data, Trial.arm == "Control") $Lung.function) $p.value
+
+fig1<- ggplot(lung_data, aes(x = Trial.arm, y = Lung.function, fill = Trial.arm)) +
+  geom_violin(trim = FALSE, alpha = 0.5, width = 0.5) +
+  geom_dotplot(binaxis = "y",
+               stackdir = "center",
+               dotsize = 0.5,
+               aes(fill = Trial.arm)) +
+  labs(x = "Trial Arm", y = "Lung Function", fill = "Trial Arm") +
+  theme_minimal() +
+  coord_flip()
+fig1
+```
+
+
+
+A t-test comparing lung function between the treatment and control groups shows a significant difference (p = 0.0374),which is below the standard significance level of 0.05, suggesting that the treatment has an overall effect on lung function.
+
+### Analysis stratified by sex
+```{r}
+t.test(filter (lung_data, Sex=='M', Trial.arm == "Treatment") $Lung.function,
+filter (lung_data,  Sex=='M', Trial.arm == "Control") $Lung.function) $p.value
+
+
+t.test(filter (lung_data, Sex=='F', Trial.arm == "Treatment") $Lung.function,
+filter (lung_data,  Sex=='F', Trial.arm == "Control") $Lung.function) $p.value
+fig2<- ggplot(lung_data, aes(x = Trial.arm, y = Lung.function, fill = Sex)) +
+  geom_violin(trim = FALSE, alpha = 0.5, width = 0.75,position = position_dodge(0.75)) +
+  geom_dotplot(binaxis = "y",
+               stackdir = "center",
+               dotsize = 0.5,
+               aes(fill = Sex),
+               position = position_dodge(0.75)) +  # Adjust position to overlay correctly
+  labs(x = "Trial Arm", y = "Lung Function", fill = "Sex") +
+  theme_minimal() +
+  coord_flip()
+fig2
+
+```
+
+
+- Males: The t-test for males indicates no significant difference in lung function between the treatment and control groups (p = 0.1268).
+- Females: Similarly, the t-test for females shows no significant difference in lung function between the treatment and control groups (p = 0.698).
+
+
+### Statistical Analysis
+- While the overall analysis suggests a significant effect of the treatment on lung function, further stratified analysis by sex reveals non-significant differences within both male and female groups.
+- These results imply that the observed treatment effect might be influenced by random sampling from both genders. There are more men in the treatment group and more women in the control. And men tend to have a higher baseline level of lung function.
 
 ###Exercise 2 Confounders
-```{r confounders}
-N <- 100
+#Distributation of x and y
+```{r}
+#command line
+args <- commandArgs(trailingOnly = TRUE)
+N <- as.integer(args[1])
+
+N = 5000
+if (is.na(N)) {
+  stop("5000")
+}
+set.seed(57)
+
+#Data
 w <- 1 + rnorm(N)
 x_0 <- rnorm(N)
 y_0 <- rnorm(N)
 x <- x_0 + w
 y <- y_0 - w
-hist(x)
-hist(y)
-```
-The two distributions seem to be mean shifted standard distributions with respective means around 1 and -1 respectively and an approximate standard deviation of 1.
-```{r t test}
-t <- t.test(x, y)
-t
+#Ploting parameter of ! row and 2 coloums
+par(mfrow=c(1,2))
+print(y)
+
+#Plot the histogram of x
+hist(x, main="Histogram of x", xlab="x values", ylab="Frequency", col="red", breaks=40)
+#plot the histagram of y
+hist(y, main="Histogram of y", xlab="y values", ylab="Frequency", col="green", breaks=40)
 
 ```
-The observed mean difference of between the two groups of approximately 2 is extremely unlikely to have been due to random variation. 
+#Compute the t-test between x and y
+```{r}
+t_test_result <-t.test(x,y)
+print(t_test_result)
+```
+#Report
+The Welch Two Sample t-test between x anf y calculated the "t-statistic" is approximately 69.463.
+The "degrees of freedom" are approximately 9997.3.
+AS the p-values is very close to zero it indicates the strong evidance against the null hypothesis.
+The 95% confidence interval for the difference in means between x and y is approximately [1.924, 2.036].
+The mean of x is approximately 0.996 and the mean of y is approximately -0.983.
+#Interpretation of findings
+ Low p-value indicates that there is a statistically significant difference between the means of x and y.
+ As the means of x is positive and highr than y. It indicates that, on average, the effect of adding w to x is greater than subtracting w from y.
+The practical significance of the material is determined by its context and the specific challenge at hand. A difference of about 2 units on some scales may or may not be significant, depending on the domain.
 
-```{r confounders 2}
-int.choice <- c(-1,1)
-N <- 100
+#generate two new vectors x` and y`
+
+```{r}
+#Data
 w <- 1 + rnorm(N)
-sign.swap <- function(i){ # where i = element in x
-  i*sample(int.choice, 1, replace=TRUE)
-}
-w_p <- sapply(w, sign.swap)
 x_0 <- rnorm(N)
 y_0 <- rnorm(N)
+
+#Randomly decide to multiply w by either +1 or -1
+signs <- sample(c(-1, 1), N, replace = TRUE)
+w_p <- w * signs
+# Generate xp and yp
 x_p <- x_0 + w_p
 y_p <- y_0 - w_p
-hist(x_p)
-hist(y_p)
+#Display
+summary(x_p)
+summary(y_p)
 ```
-```{r t test}
-t <- t.test(x_p, y_p)
-t
+#Compute the t-test
+```{r}
+t_test_result <-t.test(x_p, y_p)
+print(t_test_result)
+```
+#Report
+The Welch Two Sample t-test between x anf y calculated the "t-statistic" is approximately -0.225.
+The "degrees of freedom" are approximately 9997.2.
+The p-value is 0.8223, that is greater than the commonly used significance level of p-value (0.05). This indicates that there is no statistically significant difference between the means of xp and yp.
+The 95% confidence interval for the difference in means between xp and yp is approximately (-0.074, 0.059).
+The mean of xp is approximately 0.012 and the mean of yp is approximately 0.019.
+#Interpretation of findings
+The p-value of 0.8223 suggests that there is no evidence to reject the null hypothesis. This indicates that the true difference in means between xp and yp is likely to be zero and means of xp and yp are very close with yp having a slightly higher mean than xp.This difference is not statistically significant.
+The slight difference in means between xp and yp may not be practically important, especially given the narrow confidence interval and the fact that it contains zero.
 
-```
-Randomly swapping the signs of an almost uniformly positive distribution is going to lead to the distribution being much more centered around zero. It is not surprising that the null hypothesis cannot be rejected in this case. 
+Randomly swapping the signs of an almost uniformly positive distribution is going to lead to the w_p distribution being more centered around zero. It is not surprising that the null hypothesis cannot be rejected in this case. Below the original w distribution and the uniformly sign-shifted w_p distribution.
 ```{r w_p comp}
 hist(w)
 hist(w_p)
@@ -85,26 +191,27 @@ str(dist.matrix)
 
 #Hierarchical Clustering
 #Complete
-```{r clustering}
+```{r clustering complete}
 clustersCom <- hclust(dist.matrix,method = "complete")
 plot(clustersCom)
 ```
 #Single
-```{r clustering}
+```{r clustering single}
 clustersS <- hclust(dist.matrix,method = "single")
 plot(clustersS)
 ```
 #Average
-```{r clustering}
+```{r clustering average}
 clustersA <- hclust(dist.matrix,method = "average")
 plot(clustersA)
 ```
 #Centroid
-```{r clustering}
+```{r clustering centroid}
 clustersCen <- hclust(dist.matrix,method = "centroid")
 plot(clustersCen)
 ```
 The form of each dendrogram reflects the method used for clustering. Single linkage begins with the most similar points (minimum distance) between clusters, which seems to reduce dimensions in a way that there are still a lot of similar groups as we approach the top of the dendrogram. Centroid linkage compares the centroid difference between clusters and reveals more clustering structure higher up the dendrogram than single linkage, but is still difficult to decipher where one could make cuts. Complete linkage uses the maximal dissimilarity between objects in a cluster and as a result, seems to visually do a good job of gathering the branches into identifiable groupings while average linkage computes the average pairwise dissimilarity between all objects in clusters. As complete linkage seems to have the clearest differentiation near the top of the dendrogram, we'll use it for our cut to analyze the groupings. 
+
 #Cutting the dendrogram
 ```{r pruning}
 cut <- cutree(clustersCom, k = 4)#c(4,6))
@@ -128,7 +235,7 @@ df14 %>% count(nci.labs, cut14)
 #Still not completely impressed. Let's try somewhere in between 4 and 14: 10?
 ```{r groups3}
 length(unique(nci.labs))
-#So let's try 14 groups
+#So let's try 10 groups
 cut10 <- cutree(clustersCom, k = 10)#c(4,6))
 
 df10 <- data.frame(nci.labs, cut10)
@@ -226,7 +333,4 @@ f) FALSE, we should ALSO randomly select from subgroups we have identified as po
 g) For a study of the effects of alcohol on blood pressure, a smoking habit would be an example of a counfounder or confounding factor.
 h) The second study showed that both obese and non-obese people showed lower blood pressure in a control group than in a high-alcohol group. However, when the entire population was observed, the high-alcohol group had lower blood pressure. This suggests that the mean difference in blood pressure between men and women is driving the observed mean differences in the total population, likely through differing distribution and the control and treatment groups. In order to estimate if the effect is present in the total population, one could adjust for these baseline differences by mean shifting blood pressure for the obese population with the difference from the non-obese population and running the comparison. 
 i) FALSE, the second test has mostly confirmed two confounding factors that we likely should have blocked in the first study.
-j) FALSE, this ad-hoc comparison shows that mean blood pressure in a control group is lower than in a high alcohol group in both obese and non-obese groups than would be expected due to random variation. Mostly, the second study shows that there are complex relationships between multiple counfounding factors and that a future experimental design should take those into account.
-```{r Review}
-
-```
+j) FALSE, this ad-hoc comparison shows that mean blood pressure in a control group is lower than in a high alcohol group in both obese and non-obese groups than would be expected due to random variation. Mostly, the second study shows that there are complex relationships between multiple confounding factors and that a future experimental design should take those into account.
