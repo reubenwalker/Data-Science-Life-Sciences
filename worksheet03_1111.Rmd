@@ -11,7 +11,51 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-###Clustering
+###Exercise 2 Confounders
+```{r confounders}
+N <- 100
+w <- 1 + rnorm(N)
+x_0 <- rnorm(N)
+y_0 <- rnorm(N)
+x <- x_0 + w
+y <- y_0 - w
+hist(x)
+hist(y)
+```
+The two distributions seem to be mean shifted standard distributions with respective means around 1 and -1 respectively and an approximate standard deviation of 1.
+```{r t test}
+t <- t.test(x, y)
+t
+
+```
+The observed mean difference of between the two groups of approximately 2 is extremely unlikely to have been due to random variation. 
+
+```{r confounders 2}
+int.choice <- c(-1,1)
+N <- 100
+w <- 1 + rnorm(N)
+sign.swap <- function(i){ # where i = element in x
+  i*sample(int.choice, 1, replace=TRUE)
+}
+w_p <- sapply(w, sign.swap)
+x_0 <- rnorm(N)
+y_0 <- rnorm(N)
+x_p <- x_0 + w_p
+y_p <- y_0 - w_p
+hist(x_p)
+hist(y_p)
+```
+```{r t test}
+t <- t.test(x_p, y_p)
+t
+
+```
+Randomly swapping the signs of an almost uniformly positive distribution is going to lead to the distribution being much more centered around zero. It is not surprising that the null hypothesis cannot be rejected in this case. 
+```{r w_p comp}
+hist(w)
+hist(w_p)
+```
+###Exercise 3 Clustering
 #Load microarray data
 ```{r load data and libraries}
 library(tidyverse)
