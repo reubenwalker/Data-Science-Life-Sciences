@@ -99,7 +99,7 @@ x <- x_0 + w
 y <- y_0 - w
 #Ploting parameter of ! row and 2 coloums
 par(mfrow=c(1,2))
-print(y)
+#print(y)
 
 #Plot the histogram of x
 hist(x, main="Histogram of x", xlab="x values", ylab="Frequency", col="red", breaks=40)
@@ -244,13 +244,13 @@ df10 %>% count(nci.labs, cut10)
 What if we try it with another algorithm?
 ```{r groups centroid}
 length(unique(nci.labs))
-#So let's try 14 groups
-cut4c <- cutree(clustersCom, k = 4)#c(4,6))
+#Centroid algorithm, four groups
+cut4c <- cutree(clustersCen, k = 4)#c(4,6))
 
 df4c <- data.frame(nci.labs, cut4c)
 df4c %>% count(nci.labs, cut4c)
 ```
-This seems a little better using the centroid linkage. Breast cancer appears in 1,2, and 4, but colon cancer, melanoma, leukemia, ovarian, prostate, and the repro types are all isolated in their own groups even with k=4. Now let's take a look at k means
+This seems subjectively better using the centroid linkage. Breast cancer is now isolated while only leukemia (n=3) and renal (n=2) are split across groupings, even with k=4. Now let's take a look at k means
 ```{r k means}
 set.seed(123)
 cl <- kmeans(nci.data.scaled, 4)
@@ -259,6 +259,8 @@ df_k <- data.frame(nci.labs,cl$cluster)
 df_k %>% count(nci.labs, cl$cluster)
 ```
 The clustering seems to have done similarly, with breast cancer (4), CNS (2), melanoma(2), and renal (2)  appearing across multiple groupings.
+
+Obviously, 64 dimensional data is difficult to visualize in 2d, so we'll also print the "best" fit based on the labels.
 ```{r kmeans best fit}
 lengthTest <- 64
 meansList <- list()
@@ -282,7 +284,7 @@ for (t in 1:5) {
 resultDF_f
 
 ```
-Obviously, 64 dimensional data is difficult to visualize in 2d, so I'll print the best fit based on the labels. One of the K means split all values into their own groups outside of breast cancer (2) and NSCLC (2). This isn't necessarily a "good" clustering result though, as this is information that we shouldn't have. Let's use a validation package to check what we "should" do.
+One of the K means split all values into their own groups outside of breast cancer (2) and NSCLC (2). This isn't necessarily a "good" clustering result though, as this is information that we shouldn't have. Let's use a validation package to check what we "should" do.
 ```{r validate}
 intern <- clValid(nci.data.scaled, 2:14, clMethods=c("hierarchical","kmeans"),
                   validation="internal")
@@ -292,30 +294,7 @@ optimalScores(intern)
 plot(intern)
 
 ```
-So it seems like the optimal k for kMeans would be seven groups as the silhouette score has a local maximum(?). Let's take a look:
-```{r kMeans 7}
-lengthTest <- 64
-meansList <- list()
-for (t in 1:5) {
-  (cl <- kmeans(nci.data.scaled, 7))
-  df_i <- data.frame(nci.labs,cl$cluster)
-  resultDF <- df_i %>% count(nci.labs, cl$cluster)
-  lengthTest_i <-length(resultDF$n)
-  meansList <- c(meansList, cl)
-  if (lengthTest_i < lengthTest) {
-    print(lengthTest_i)
-    lengthTest <- lengthTest_i
-    t_f <- t
-    cl_f <- cl
-    resultDF_f <- resultDF
-  }
-  
-}
-resultDF_f
-```
-So even with the optimized k for the kMeans method, we end up with some cancer types split across the groupings. The repro variants are all isolated, as well as leukemia and colon cancer, which is uniquely grouped with a single instance of NSCLC. 
-
-However, the highest score seems to be just two groups for average linkage hierarchical clustering:
+The highest score across all validation measures seems to be just two groups for average linkage hierarchical clustering:
 ```{r hierarchy 2 branches}
 cutA <- cutree(clustersA, k=2)
 df <- data.frame(nci.labs, cutA)
