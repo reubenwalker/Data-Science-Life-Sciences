@@ -1,0 +1,190 @@
+---
+title: "worksheet_04_01"
+output: html_document
+date: "2024-05-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#### Load libraries 
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggflags)
+library(ggpubr)
+library(latex2exp)
+```
+### Data summary
+```{r}
+chocolate_data <- read.csv('chocolate.csv')
+print(chocolate_data)
+
+# Summary statistics
+summary(chocolate_data)
+```
+
+
+### Visualize the dependent and independent variables
+```{r}
+ggplot(chocolate_data, aes(x = Nobel.prizes.per.capita..scaled.by.10.million., y = Per.capita.chocolate.consumption..kg.)) +
+  geom_point() +
+  labs(x = "Nobel Prizes per Capita (scaled by 10 million)", y = "Per Capita Chocolate Consumption (kg)") +
+  theme_bw()+
+  theme(text= element_text(size=14))
+
+# Fit a simple linear regression model
+lm_fit <- lm(Per.capita.chocolate.consumption..kg. ~ Nobel.prizes.per.capita..scaled.by.10.million., data = chocolate_data)
+
+summary(lm_fit)$coefficients
+```
+
+##### The analysis suggests that there is a statistically significant relationship between Nobel prizes per capita scaled by 10 million and Per Capita Chocolate Consumption. For every one-unit increase in Nobel prizes per capita scaled by 10 million, there is an expected increase in Per Capita Chocolate Consumption by approximately 0.1765 units.
+
+
+
+### Compute intercept, slope, and R-squared
+```{r}
+intercept <- coef(lm_fit)[1]
+slope <- coef(lm_fit)[2]
+r_squared <- summary(lm_fit)$r.squared
+cat("Intercept: ", intercept, "\n", 
+    "Slope: ", slope, "\n",
+    "R_squared: ", r_squared, "\n")
+``` 
+
+### Add regression line using geom_smooth
+```{r}
+ggplot(chocolate_data, aes(x = Nobel.prizes.per.capita..scaled.by.10.million., y = Per.capita.chocolate.consumption..kg.)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "darkorange") +
+  labs(x = "Nobel Prizes per Capita (scaled by 10 million)", y = "Per Capita Chocolate Consumption (kg)") +
+  theme_bw()+
+  theme(text= element_text(size=14))
+``` 
+
+### Add regression line manually
+```{r}
+ggplot(chocolate_data, aes(x = Nobel.prizes.per.capita..scaled.by.10.million., y = Per.capita.chocolate.consumption..kg.)) +
+  geom_point() +
+  geom_abline(intercept = intercept, slope = slope, color = "darkblue") +
+  labs(x = "Nobel Prizes per Capita (scaled by 10 million)", y = "Per Capita Chocolate Consumption (kg)") +
+  theme_bw()+
+  theme(text= element_text(size=14))
+```
+
+### Check assumptions with visualizations 
+```{r}
+ggplot(lm_fit, aes(x = .fitted, y = .resid)) +
+geom_point (colour = "dodgerblue", size = 2, alpha = 0.33) +
+xlab (expression (hat(y))) + ylab (expression (epsilon)) + 
+theme_bw() + theme (text = element_text(size = 18))
+```
+
+##### The residuals are randomly scattered around zero which means equal variance assumption is not violated. But, the sample size is apparantely lower. So, larger sample size might generate different result. 
+```{r}
+ggplot(lm_fit, aes(x = .resid, y = ..density..)) +
+theme_bw() + theme (text = element_text(size = 18)) + xlab (expression(epsilon)) + geom_histogram (binwidth = 1, colour = "darkorange", fill = "darkorange", alpha=0.5)
+
+par(mar = c(3.6, 3.6, 2.1, 0.1))
+par(mgp = c(2.25, 0.75, 0)) 
+qqnorm(lm_fit$residuals, col = "dodgerblue", cex.lab = 1.25, pch = 19) 
+qqline(lm_fit$residuals, col = "darkorange", lwd = 2)
+
+```
+
+##### Analysing the Q-Q plot we can observe some non-normality in the residuals. There might be outliers in the data. Which means assumptions of our model is violated.
+
+# Question 2
+```{r}
+library(HistData)
+#str(GaltonFamilies)
+df_sons = subset(GaltonFamilies,GaltonFamilies$gender == "male")
+df_sons
+```
+
+We have a data frame with the height of the child and the height of their parents. Let's take the subset of sons.
+```{r}
+lm_fit_s <- lm(childHeight ~ father, data = df_sons)
+
+summary(lm_fit_s)$coefficients
+ggplot(df_sons, aes(x = father, y = childHeight)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "darkorange") +
+  labs(x = "Son Height", y = "Father Height",
+       title="Son~Father") +
+  theme_bw()+
+  annotate(geom="text", x=65, y=75, label=paste("R^2== ",round(summary(lm_fit_s)$r.squared, digits=2)), color="red", parse=TRUE) +
+  theme(text= element_text(size=14))
+```
+Though there is a significant correlation between son height and father height, the R^2 value is only 0.15, meaning that 15% of the variation in son height can be explained through the height of the father. That means that 85% of the variation is unexplained by height of the father. If you wanted to estimate son height based on father height, a healthy portion of your prediction will be the mean height of the sample.
+```{r}
+lm_fit_f <- lm(father ~ childHeight, data = df_sons)
+ggplot(df_sons, aes(x = childHeight, y = father)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "dodgerblue") +
+  labs(x = "Father Height", y = "Son Height",
+       title="Father~Son") +
+  theme_bw()+
+  annotate(geom="text", x=65, y=75, label=paste("R^2== ",round(summary(lm_fit_f)$r.squared, digits=2)), color="red", parse=TRUE) +
+  theme(text= element_text(size=14))
+```
+```{r}
+summary(lm_fit_s)$coefficients
+summary(lm_fit_f)$coefficients
+cat("Pearson's correlation: ", cor(df_sons$father, df_sons$childHeight))
+```
+
+The slope of the regression line for the father~sonHeight is 0.34 and the slope of the regression line for sonHeight~father is 0.45. The R^2 value for both is identical, showing that the Pearson's coefficient (calculated with mean-centered and standardized scale is identical at 0.39). 
+
+```{r}
+summary(lm_fit_s)$coefficients
+summary(lm_fit_f)$coefficients
+cat("Pearson's correlation: ", cor(df_sons$father, df_sons$childHeight))
+```
+```{r}
+a_s <- summary(lm_fit_s)$coefficients[1]
+b_s <- summary(lm_fit_s)$coefficients[2]
+a_f <- summary(lm_fit_f)$coefficients[1]
+b_f <- summary(lm_fit_f)$coefficients[2]
+#ggplot(df_sons, aes(x = childHeight, y = father)) +
+#  geom_point() +
+#  #geom_smooth(method = "lm", color = "darkorange") +
+#  labs(x = "x Height", y = "y Height") +
+#  theme_bw()+
+#  theme(text= element_text(size=14)) +
+#  geom_abline(intercept=a_s, slope=b_s) +
+#  geom_abline(intercept=a_f, slope=b_f)
+plot(x=df_sons$childHeight, y=df_sons$father,
+     xlab="x_Height", ylab="y_Height",
+     main="Overlay of Regressed Father Son Height",
+     sub="Black: son~father, Red: father~son")
+points(x=df_sons$father, y=df_sons$childHeight, col=2)
+abline(a=a_s, b=b_s)
+abline(a=a_f, b=b_f, col=2)
+#x_means <- c(mean(df_sons$father),)
+#abline(a=(mean(df$father)-mean(df$childHeight)), b=1, col=3)
+#points(x=mean(df_sons$father),y=mean(df_sons$childHeight),pch=19)
+#points(y=mean(df_sons$father),x=mean(df_sons$childHeight),pch=19,col=2)
+```
+
+So for both sons and fathers, an extreme case is likely to be paired with a less extreme case. A very tall father's child will likely be less tall than him and a very tall child is unlikely to have come from a very tall father.   
+
+Let's look at the scaled data:
+```{r}
+df_sons$scaled_f <- scale(df_sons$father)
+df_sons$scaled_s <-scale(df_sons$childHeight)
+lm_fit_f <- lm(scaled_f ~ scaled_s, data = df_sons)
+ggplot(df_sons, aes(x = scaled_s, y = scaled_f)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "dodgerblue") +
+  labs(x = "Son Height", y = "Father Height", 
+       title="Standardized Height Regressed with Perfect Correlation in Red") +
+  theme_bw()+
+  geom_abline(slope=1, col='red')
+  #annotate(geom="text", x=65, y=75, label=paste("R^2== ",round(summary(lm_fit_f)$r.squared, digits=2)), color="red", parse=TRUE) +
+  theme(text= element_text(size=14))
+
+```
+
+With standardized values, the correlation coefficient is identical regardless of which axis is chosen. The value less than the perfect correlation of 1 shows that we should always expect "reversion to mediocrity," even with more strongly correlated data.
