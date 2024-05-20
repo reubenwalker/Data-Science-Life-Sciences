@@ -1,0 +1,153 @@
+---
+title: "Worksheet 5 Group 1111"
+author: "Ammara Akhtar, Afia Ibnath, and Reuben Walker"
+date: "19 May 2024"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#### Load libraries 
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(plotrix)
+library(caret)
+```
+### Data summary
+```{r}
+gene_data <- read.csv('genetic_circuit.csv')
+str(gene_data)
+
+# Summary statistics
+summary(gene_data)
+```
+
+
+### Compute the means and standard errors of the means over the three experiments
+```{r}
+#Concentration:
+#ag1 <- gene_table[, sapply(.SD, function(x) list(mean=mean(x), sd=sd(x))), by=concentration]
+
+ag1 <- aggregate(. ~ concentration, select(gene_data, concentration, seap), function(x) c(mean = mean(x), se = std.error(x)))
+#aggregate puts the aggregate columns into a results matrix.
+#Convert back into df columns:
+ag1 <- cbind(ag1[-ncol(ag1)],ag1[[ncol(ag1)]])
+ag1
+
+
+
+```
+```{r}
+
+#Set of cytokines:
+ag2 <- aggregate(. ~ cytokine, select(gene_data, cytokine, seap), function(x) c(mean = mean(x), se = std.error(x)))
+cbind(ag2[-ncol(ag2)],ag2[[ncol(ag2)]])
+```
+
+```{r}
+#Figure setting:
+ag3 <- aggregate(. ~ figure, select(gene_data, figure, seap), function(x) c(mean = mean(x), se = std.error(x)))
+cbind(ag3[-ncol(ag3)],ag3[[ncol(ag3)]])
+```
+### Recreating figures
+```{r}
+#Figure
+#Mean and standard deviation plot grouped by 
+  #cytokine concentration, and
+  #cytokine set
+# rectangle
+for (group in c("1c","1d","1e","1f")) {
+
+  ag_c <- aggregate(. ~ cytokine+concentration, select(subset(gene_data, gene_data$figure == group), cytokine, concentration, seap), function(x) c(mean = mean(x), sd = sd(x)))
+  #aggregate puts the aggregate columns into a results matrix.
+  #Convert back into df columns:
+  ag_c <- cbind(ag_c[-ncol(ag_c)],ag_c[[ncol(ag_c)]])
+  
+  
+  print(
+    ggplot(ag_c, aes(x=as.factor(concentration), y=mean, fill=cytokine)) +
+    geom_bar(position=position_dodge(), stat="identity", colour='black') +
+    geom_errorbar(aes(ymin=mean, ymax=mean+sd), width=.2,position=position_dodge(.9)) + 
+    labs(x=bquote("Cytokine concentration (pg m"~L^-1~")"), y=bquote("SEAP (U "~L^-1~")")) +
+    ggtitle(group)
+  )
+}
+
+```
+
+# Question 2
+```{r}
+
+data <- read.csv("genetic_circuit.csv")
+#data
+print(head(data))
+print(summary(data))
+colnames(data) <- c("concentration", "circuit_response", "experiment", "figure", "cytokine")
+##data <- data %>%
+#  mutate(C_normalized = (concentration - min(concentration)) / (max(concentration) - min(concentration)),
+#         R_normalized = (circuit_response - min(circuit_response)) / (max(circuit_response) - min(circuit_response)))
+```
+
+```{r}
+#what do the different experiments look like?
+barplot(table(data$experiment), main="Experiment Count Histogram")
+
+ggplot(data, aes(x=as.factor(experiment), y=circuit_response, fill=cytokine)) +
+  geom_violin() +
+  #stat_summary(fun.y=median, geom="point", size=2, color="red")+
+  labs(title="Violin Plot of Circuit Response By Experiment")# (Red:Median)")
+  #geom_bar(stat="identity") 
+  #geom_errorbar(aes(ymin=mean, ymax=mean+sd), width=.2,position=position_dodge(.9)) + 
+  #labs(x=bquote("Cytokine concentration (pg m"~L^-1~")"), y=bquote("SEAP (U "~L^-1~")"))
+
+```
+Since the distribution of the experiments differ, we should include the experiment number as a factor in the multivariate linear regression. Cytokine value is a little more difficult to identify visually. Revisiting figure 1d it looks like the observed differences might differ for each cytokine but that the observed pattern is the same.
+
+Let's take a quick look at the distribution of our continuous variables:
+```{r}
+hist(data$circuit_response)
+hist(data$concentration)
+```
+Both continuous variables are highly skewed. Would log transforming them be an option?
+```{r}
+data$log_circuit <- log(data$circuit_response +1)# +1 due to zero values
+data$log_concentration <- log(data$concentration)
+hist(data$log_circuit)
+hist(data$log_concentration)
+```
+Visually that doesn't seem to fix everything, but it's certainly better than before.
+
+We'll try a multivariate linear regression with an interaction for concentration and experimental group with the genetic circuit (our experimental group) as the reference group with a constant term for experiment number. We will perform a post-hoc comparison of means to see if our positive and negative control groups behaved as we would have expected.
+```{r}
+data$figure <- as.factor(data$figure)
+data$experiment <- as.factor(data$experiment)
+data$figure <- relevel(data$figure, ref = "1d")
+#model <- lm(circuit_response~concentration*figure + experiment, data = data)
+model <- lm(log_circuit~log_concentration*figure + experiment, data = data)
+summary(model)
+```
+There is a significant effect for concentration within the experimental group in our model. There are significant differences in the constant terms for the negative controls, showing differences for our experimental group with the genetic circuit. The difference between the positive control and the genetic circuit was non-significant. Did the positive control behave differently than the negative controls as hoped?
+```{r}
+data_controls <- subset(data, data$figure != "1d")
+ggplot(data_controls, aes(x=figure, y=circuit_response, fill=cytokine)) +
+  geom_violin() +
+  #stat_summary(fun.y=median, geom="point", size=2, color="red")+
+  labs(title="Circuit Response for Negative (1c/1e) and Positive (1f) Controls")# (Red:Median)")
+```
+The positive and negative controls behaved as expected. Let's look at the residuals.
+```{r}
+hist(model$residuals)
+qqnorm(model$residuals)
+qqline(model$residuals)
+```
+The qqplot looks fairly acceptable once we log-transform our continuous variables. There is a large negative tail that isn't being modeled well.
+
+Statistical Methods:
+In order to measure the effect of concentration on circuit response for an experimental, a positive control, and two negative control groups over three different experiment settings, we modeled the data with a multivariate linear regression. As the dependent variable circuit response was skewed and the independent variable concentration was not uniformly distributed, we regressed the log-transformed circuit response against an interaction term between log-transformed concentration and experimental group (figures 1c/1d/1e/1f) with a constant adjustment for experiment number (1, 2, or 3).
+
+Summary:
+There was a significant effect for log concentration in the experimental (genetic circuit) group. The coefficient for log-concentration of 0.34 indicates that for every one-unit increase in concentration, the circuit response increases by a factor of 1.4 ($e^(0.34)$).
