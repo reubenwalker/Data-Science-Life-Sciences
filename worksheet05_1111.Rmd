@@ -69,8 +69,9 @@ for (group in c("1c","1d","1e","1f")) {
   
   
   print(
-    ggplot(ag_c, aes(x=as.factor(concentration), y=mean, fill=cytokine)) +
+    ggplot(ag_c, aes(x=concentration, y=mean, fill=cytokine)) +
     geom_bar(position=position_dodge(), stat="identity", colour='black') +
+    #geom_col(position=position_dodge(), stat="identity", colour='black') +
     geom_errorbar(aes(ymin=mean, ymax=mean+sd), width=.2,position=position_dodge(.9)) + 
     labs(x=bquote("Cytokine concentration (pg m"~L^-1~")"), y=bquote("SEAP (U "~L^-1~")")) +
     ggtitle(group)
@@ -78,6 +79,7 @@ for (group in c("1c","1d","1e","1f")) {
 }
 
 ```
+Once the axis breaks are removed from the paper's figures, it becomes apparent that our data has large non-normal disparities in cytokine concentration as well as large differences in the circuit response between groups and any model will need to account for them.
 
 # Question 2
 ```{r}
@@ -150,4 +152,4 @@ Statistical Methods:
 In order to measure the effect of concentration on circuit response for an experimental, a positive control, and two negative control groups over three different experiment settings, we modeled the data with a multivariate linear regression. As the dependent variable circuit response was skewed and the independent variable concentration was not uniformly distributed, we regressed the log-transformed circuit response against an interaction term between log-transformed concentration and experimental group (figures 1c/1d/1e/1f) with a constant adjustment for experiment number (1, 2, or 3).
 
 Summary:
-There was a significant effect for log concentration in the experimental (genetic circuit) group. The coefficient for log-concentration of 0.34 indicates that for every one-unit increase in concentration, the circuit response increases by a factor of 1.4 ($e^(0.34)$).
+There was a significant effect for log concentration in the experimental (genetic circuit) group. The coefficient for log-concentration of 0.34 indicates that for every one-unit increase in concentration, the circuit response in the experimental group increases by a factor of 1.4 ($e^(0.34)$).
