@@ -10,8 +10,8 @@ entity4 = syn.get("syn55234796")
 entity5 = syn.get("syn55234797")
 
 
-df_sv = pd.read_csv(entity5.path, delimiter="\t", nrows=2)
-df_mutations = pd.read_csv(entity4.path, delimiter="\t", nrows=2)
+df_sv = pd.read_csv(entity5.path, delimiter="\t", nrows=10000)
+df_mutations = pd.read_csv(entity4.path, delimiter="\t", nrows=1000)
 
 # df_CNA = pd.read_csv(entity.path, delimiter="\t")#, nrows=2)
 df_patient = pd.read_csv(entity2.path, delimiter="\t", skiprows=4)
@@ -38,7 +38,8 @@ df_CNA_T = df_CNA_T.drop('Hugo_Symbol')
 
 df_clinical_merge = df_clinical[['SAMPLE_ID', 'CANCER_TYPE']].set_index('SAMPLE_ID')
 
-df_CNA_clinical = pd.merge(df_CNA_T, df_clinical_merge, left_index=True, right_index=True)#')
+df_CNA_clinical = pd.merge(df_CNA_T, df_clinical_merge, left_index=True, right_index=True)
+df_CNA_clinical = df_CNA_clinical.dropna(axis=1) #Drop empty columns
 
 df_CNA_clinical.to_csv('mergedClinicalCNA.csv')
 
@@ -176,3 +177,32 @@ plt.savefig('kaplanmeier3.png')
 patient_cols = pd.read_csv(entity2.path, delimiter="\t", nrows=4)
 
 clinical_cols = pd.read_csv(entity3.path, delimiter="\t", nrows=4)
+
+#CNA    
+    #
+
+
+
+
+#From the structural variant data, we want
+        #For each gene, the
+        #total count of a somatic mutation (that is, SNV and indels) was encoded
+        #as a positive integer feature
+    #Subset: SV_Status == "Somatic"
+    #Rows: ID
+    #Column: Class
+    #Cell: Category (Insertion/Deletion/Duplication/Inversion)
+
+somatic_mask = df_sv['SV_Status'] == 'SOMATIC' #Just somatic variants
+df_sv = df_sv.loc[somatic_mask, ]
+df_svCounts = df_sv.groupby(['Sample_Id','Site1_Hugo_Symbol'])['Class'].count().unstack() 
+df_svCounts = df_svCounts.fillna(0) #Fill missing counts with 0
+
+df_svCounts.to('somatic_variants.csv')
+
+#From the mutation data, we want
+    #Rows: ID
+    #Column: Mutation gene
+    #Cell: Polyphen score
+#somatic_mask2 = df_mutations['SV_Status'] == 'SOMATIC'  #Do we need this?
+# df_mutations
