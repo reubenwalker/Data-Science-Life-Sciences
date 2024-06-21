@@ -1,24 +1,19 @@
 import synapseclient
 import pandas as pd
 import matplotlib.pyplot as plt
-# syn = synapseclient.Synapse()
-# syn.login(authToken="dummy")
+syn = synapseclient.Synapse()
+syn.login('dummy')
+
 entity = syn.get("syn55234671")
 entity2 = syn.get("syn55234672")
 entity3 = syn.get("syn55234673")
 entity4 = syn.get("syn55234796")
 entity5 = syn.get("syn55234797")
 
+df_CNA = pd.read_csv(entity.path, delimiter="\t")#, nrows=2)
 
-df_sv = pd.read_csv(entity5.path, delimiter="\t")#, nrows=10000)
-#df_mutations = pd.read_csv(entity4.path, delimiter="\t", nrows=1000)
 
-# df_CNA = pd.read_csv(entity.path, delimiter="\t")#, nrows=2)
-df_patient = pd.read_csv(entity2.path, delimiter="\t", skiprows=4)
-
-df_clinical = pd.read_csv(entity3.path, delimiter="\t", skiprows=4)
-
-df_CNA = pd.read_csv('CNA.csv')
+# df_CNA = pd.read_csv('CNA.csv')
 cols = df_CNA.columns
 colsMask = ((cols == 'Hugo_Symbol') |
             cols.str.contains('-DFCI-') |
@@ -27,13 +22,7 @@ colsMask = ((cols == 'Hugo_Symbol') |
 colSubset = cols[colsMask]
 df_CNA = df_CNA[colSubset]
 
-cols = df_sv.columns
-colsMask = ((cols == 'Hugo_Symbol') |
-            cols.str.contains('-DFCI-') |
-            cols.str.contains('-MSK-') |
-            cols.str.contains('-VICC-'))
-colSubset = cols[colsMask]
-df_sv = df_sv[colSubset]
+
 
 #df_CNA.to_csv('CNA.csv')
 # df_patient.to_csv('patient_data.csv')
@@ -43,21 +32,33 @@ df_sv = df_sv[colSubset]
 df_CNA_T = df_CNA.T
 df_CNA_T.columns = df_CNA_T.iloc[0]
 df_CNA_T = df_CNA_T.drop('Hugo_Symbol')
+del df_CNA
+
+df_patient = pd.read_csv(entity2.path, delimiter="\t", skiprows=4)
+
+df_clinical = pd.read_csv(entity3.path, delimiter="\t", skiprows=4)
 
 #Let's get SampleID, Sex, Age, Cancer Type
 df_patient_clinical = pd.merge(df_patient[['PATIENT_ID', 'SEX']], df_clinical[['PATIENT_ID', 'SAMPLE_ID', 'AGE_AT_SEQ_REPORT', 'CANCER_TYPE']])
 
 df_clinical_merge = df_patient_clinical[['SAMPLE_ID', 'SEX', 'AGE_AT_SEQ_REPORT', 'CANCER_TYPE']].set_index('SAMPLE_ID')
 
-cancer_dict = pd.read_pickle("cancer_type_to_oncotree_subtypes_dict.pkl")
-#Let's change the cancer types to their specific groupings:
-#df_clinical_merge['CANCER_TYPE'] = df_clinical_merge['CANCER_TYPE'].apply(lambda x: cancer_dict[x])#, pd.NA))
+
 df_CNA_clinical = pd.merge(df_CNA_T, df_clinical_merge, left_index=True, right_index=True)
 df_CNA_clinical = df_CNA_clinical.dropna(axis=1) #Drop empty columns
 
-#df_CNA_clinical.to_csv('mergedClinicalCNA.csv')
+del df_CNA_T
+del df_patient
+del df_clinical
+del df_patient_clinical
+del df_clinical_merge
+df_CNA_clinical.to_csv('mergedClinicalCNA.csv')
 
-
+df_sv = pd.read_csv(entity5.path, delimiter="\t")#, nrows=10000)
+#df_mutations = pd.read_csv(entity4.path, delimiter="\t", nrows=1000)
+instList = ['DFCI', 'MSK', 'VICC']
+mask = df_sv['Center'].isin(instList)
+df_sv = df_sv[mask]
 
 
 
@@ -75,23 +76,11 @@ df_sv = df_sv.loc[somatic_mask, ]
 df_svCounts = df_sv.groupby(['Sample_Id','Site1_Hugo_Symbol'])['Class'].count().unstack() 
 df_svCounts = df_svCounts.fillna(0) #Fill missing counts with 0
 
-# df_svCounts.to_csv('somatic_variants.csv')
-#The sample_id has institution, sample and some other information
-def institutionID(string):
-    institution = string.split('-')[1]
-    return institution
-    
-def sampleID(string):
-    sample = string.split('-')[2]
-    return sample
+df_CNA_SV = pd.merge(df_svCounts, df_CNA_clinical,left_index=True, right_index=True) #on=['INSTITUTION','SAMPLE'])
 
-df_CNA_clinical = df_CNA_clinical.reset_index()
-df_CNA_clinical['INSTITUTION'] = df_CNA_clinical['index'].apply(lambda x: institutionID(x))
-df_CNA_clinical['SAMPLE'] = df_CNA_clinical['index'].apply(lambda x: sampleID(x))
-df_svCounts = df_svCounts.reset_index()
-df_svCounts['INSTITUTION'] = df_svCounts['Sample_Id'].apply(lambda x: institutionID(x))
-df_svCounts['SAMPLE'] = df_svCounts['Sample_Id'].apply(lambda x: sampleID(x))
-df_CNA_SV = pd.merge(df_svCounts, df_CNA_clinical, on=['INSTITUTION','SAMPLE'])
+del df_CNA_clinical
+del df_sv
+del df_svCounts
 
 df_CNA_SV.to_csv('CNA_SV.csv')
 
