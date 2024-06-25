@@ -2,7 +2,7 @@ import synapseclient
 import pandas as pd
 import matplotlib.pyplot as plt
 syn = synapseclient.Synapse()
-syn.login('dummy')
+syn.login(authToken="dummy")
 
 entity = syn.get("syn55234671")
 entity2 = syn.get("syn55234672")
@@ -10,6 +10,7 @@ entity3 = syn.get("syn55234673")
 entity4 = syn.get("syn55234796")
 entity5 = syn.get("syn55234797")
 
+#
 df_CNA = pd.read_csv(entity.path, delimiter="\t")#, nrows=2)
 
 
@@ -54,7 +55,7 @@ del df_patient_clinical
 del df_clinical_merge
 df_CNA_clinical.to_csv('mergedClinicalCNA.csv')
 
-df_sv = pd.read_csv(entity5.path, delimiter="\t")#, nrows=10000)
+df_sv = pd.read_csv(entity5.path, delimiter="\t")#, nrows=2)
 #df_mutations = pd.read_csv(entity4.path, delimiter="\t", nrows=1000)
 instList = ['DFCI', 'MSK', 'VICC']
 mask = df_sv['Center'].isin(instList)
@@ -82,6 +83,13 @@ del df_CNA_clinical
 del df_sv
 del df_svCounts
 
+#Let's also remove age <18, >89
+# df = pd.read_csv('CNA_SV.csv').set_index('Unnamed: 0')
+# df_CNA_SV = df
+ageMask = (df_CNA_SV['AGE_AT_SEQ_REPORT'] == '<18') | (df_CNA_SV['AGE_AT_SEQ_REPORT'] == '>89')
+df_CNA_SV = df_CNA_SV[~ageMask]
+sexMask = df_CNA_SV['SEX'] != 'Unknown'
+df_CNA_SV = df_CNA_SV[sexMask]
 df_CNA_SV.to_csv('CNA_SV.csv')
 
 
